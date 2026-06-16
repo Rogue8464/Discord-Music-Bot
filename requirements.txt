@@ -1,0 +1,20 @@
+# 核心 Discord 機器人框架 (支援 UI 視圖與斜線指令)
+discord.py>=2.3.0
+
+# 語音連線必備的加密套件
+PyNaCl>=1.5.0
+
+# 環境變數管理
+python-dotenv>=1.0.0
+
+# 音訊解析與下載
+yt-dlp>=2024.03.10
+
+# 網頁爬蟲 (處理 YouTube 搜尋)
+selenium>=4.15.0
+webdriver-manager>=4.0.0
+
+# 單元測試工具
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-mock>=3.12.0
