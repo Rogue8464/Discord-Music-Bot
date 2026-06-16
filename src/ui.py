@@ -7,13 +7,14 @@ TIMEOUT = 120
 class YouTubeSearchView(discord.ui.View):
     """處理 YouTube 搜尋結果的分頁與互動按鈕"""
 
-    def __init__(self, player: IAudioPlayer, text_channel: discord.TextChannel, author: discord.Member, song_names: list, song_urls: list):
+    def __init__(self, player: IAudioPlayer, text_channel: discord.TextChannel, author: discord.Member, song_names: list, song_urls: list, original_interaction: discord.Interaction):
         super().__init__(timeout=TIMEOUT)
-        self.player = player  # 重新命名變數，語意更符合其介面職責
+        self.player = player
         self.text_channel = text_channel
         self.author = author
         self.song_names = song_names
         self.song_urls = song_urls
+        self.original_interaction = original_interaction  # 2. 將其儲存為實例屬性
         self.page = 0
         self.update_buttons_state()
 
@@ -66,20 +67,17 @@ class YouTubeSearchView(discord.ui.View):
         await self.player.play_url(self.text_channel, interaction.user, url)
 
     async def on_timeout(self):
-        """當 120 秒超時後，自動觸發此方法"""
+        """當 120 秒超時後，自動觸發此方法更新 Discord 上的 UI"""
         # 停用所有子元件 (按鈕)
         for child in self.children:
             child.disabled = True
             
-        # 嘗試更新原始訊息，加上超時提示
         try:
-            # 必須使用 webhook 來編輯過期的 interaction
-            msg = self.get_content() + "\n\n*(⏳ 此搜尋選單已過期，請重新輸入 /search)*"
-            # 注意：這裡無法使用 interaction.response，必須對原本的訊息做處理
-            # 但因為這是 ephemeral 訊息，Discord API 有時不允許事後修改。
-            # 最簡單的做法是單純停用按鈕：
-            pass # (隱藏訊息超時後按鈕失效已經足夠，不一定要修改內文)
-        except Exception:
+            # 透過最初的 interaction 編輯那則隱藏訊息，覆蓋成沒有按鈕功能的 View
+            timeout_msg = self.get_content() + "\n\n*(⏳ 此搜尋選單已過期，請重新輸入 /search)*"
+            await self.original_interaction.edit_original_response(content=timeout_msg, view=self)
+        except Exception as e:
+            # 如果訊息早就被使用者刪除，可能會拋出錯誤，這裡選擇忽略
             pass
 
     # ================= UI 元件定義 =================
