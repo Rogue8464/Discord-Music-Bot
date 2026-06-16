@@ -34,6 +34,16 @@ class MusicBot(commands.Bot):
             # 如果沒有填寫，則執行全域同步 (需較長時間生效)
             await self.tree.sync()
             print("⚠️ 未設定 GUILD_ID，已執行全域指令同步 (這可能需要最多一小時才會在各伺服器生效)")
+    
+    async def close(self):
+        print("🛑 正在關閉機器人並釋放資源...")
+        # 關閉 Selenium 爬蟲的 Chrome 實例
+        if hasattr(video_searcher, 'close'):
+            video_searcher.close()
+            print("✅ 爬蟲瀏覽器已安全關閉")
+        
+        # 執行原本 discord.py 的關閉邏輯
+        await super().close()
 
 bot = MusicBot()
 
