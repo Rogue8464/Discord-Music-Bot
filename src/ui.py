@@ -65,6 +65,23 @@ class YouTubeSearchView(discord.ui.View):
         # 呼叫 Service 播放，Service 內部的訊息會公開發送到該頻道
         await self.player.play_url(self.text_channel, interaction.user, url)
 
+    async def on_timeout(self):
+        """當 120 秒超時後，自動觸發此方法"""
+        # 停用所有子元件 (按鈕)
+        for child in self.children:
+            child.disabled = True
+            
+        # 嘗試更新原始訊息，加上超時提示
+        try:
+            # 必須使用 webhook 來編輯過期的 interaction
+            msg = self.get_content() + "\n\n*(⏳ 此搜尋選單已過期，請重新輸入 /search)*"
+            # 注意：這裡無法使用 interaction.response，必須對原本的訊息做處理
+            # 但因為這是 ephemeral 訊息，Discord API 有時不允許事後修改。
+            # 最簡單的做法是單純停用按鈕：
+            pass # (隱藏訊息超時後按鈕失效已經足夠，不一定要修改內文)
+        except Exception:
+            pass
+
     # ================= UI 元件定義 =================
 
     @discord.ui.button(emoji="◀", style=discord.ButtonStyle.primary, row=0)
