@@ -34,6 +34,16 @@ class MusicBot(commands.Bot):
             # 如果沒有填寫，則執行全域同步 (需較長時間生效)
             await self.tree.sync()
             print("⚠️ 未設定 GUILD_ID，已執行全域指令同步 (這可能需要最多一小時才會在各伺服器生效)")
+    
+    async def close(self):
+        print("🛑 正在關閉機器人並釋放資源...")
+        # 關閉 Selenium 爬蟲的 Chrome 實例
+        if hasattr(video_searcher, 'close'):
+            video_searcher.close()
+            print("✅ 爬蟲瀏覽器已安全關閉")
+        
+        # 執行原本 discord.py 的關閉邏輯
+        await super().close()
 
 bot = MusicBot()
 
@@ -169,13 +179,13 @@ async def queue(interaction: discord.Interaction):
 @bot.tree.command(name="search", description="透過關鍵字搜尋 YouTube 影片 (僅自己可見)")
 @app_commands.describe(keyword="想搜尋的歌曲或影片名稱")
 async def search(interaction: discord.Interaction, keyword: str):
-    # 搜尋可能需要幾秒鐘，使用 defer(ephemeral=True) 確保之後的 followup 也是隱藏的
     await interaction.response.defer(ephemeral=True)
     
     song_names, song_urls = await video_searcher.search_videos(keyword)
     
     if not song_names:
-        await interaction.followup.send("❌ 查無結果，請嘗試其他關鍵字。", ephemeral=True)
+        # 這裡也可以順便改成 edit_original_response
+        await interaction.edit_original_response(content="❌ 查無結果，請嘗試其他關鍵字。")
         return
     
     view = YouTubeSearchView(
@@ -183,10 +193,11 @@ async def search(interaction: discord.Interaction, keyword: str):
         text_channel=interaction.channel, 
         author=interaction.user, 
         song_names=song_names, 
-        song_urls=song_urls
+        song_urls=song_urls,
+        original_interaction=interaction  # 把 interaction 傳入 View
     )
     
-    # 使用 followup 傳送包含按鈕的隱藏訊息
-    await interaction.followup.send(content=view.get_content(), view=view, ephemeral=True)
+    # 將 followup.send 改為 edit_original_response
+    await interaction.edit_original_response(content=view.get_content(), view=view)
 
 bot.run(BOT_TOKEN)

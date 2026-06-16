@@ -7,13 +7,14 @@ TIMEOUT = 120
 class YouTubeSearchView(discord.ui.View):
     """處理 YouTube 搜尋結果的分頁與互動按鈕"""
 
-    def __init__(self, player: IAudioPlayer, text_channel: discord.TextChannel, author: discord.Member, song_names: list, song_urls: list):
+    def __init__(self, player: IAudioPlayer, text_channel: discord.TextChannel, author: discord.Member, song_names: list, song_urls: list, original_interaction: discord.Interaction):
         super().__init__(timeout=TIMEOUT)
-        self.player = player  # 重新命名變數，語意更符合其介面職責
+        self.player = player
         self.text_channel = text_channel
         self.author = author
         self.song_names = song_names
         self.song_urls = song_urls
+        self.original_interaction = original_interaction  # 2. 將其儲存為實例屬性
         self.page = 0
         self.update_buttons_state()
 
@@ -64,6 +65,20 @@ class YouTubeSearchView(discord.ui.View):
         
         # 呼叫 Service 播放，Service 內部的訊息會公開發送到該頻道
         await self.player.play_url(self.text_channel, interaction.user, url)
+
+    async def on_timeout(self):
+        """當 120 秒超時後，自動觸發此方法更新 Discord 上的 UI"""
+        # 停用所有子元件 (按鈕)
+        for child in self.children:
+            child.disabled = True
+            
+        try:
+            # 透過最初的 interaction 編輯那則隱藏訊息，覆蓋成沒有按鈕功能的 View
+            timeout_msg = self.get_content() + "\n\n*(⏳ 此搜尋選單已過期，請重新輸入 /search)*"
+            await self.original_interaction.edit_original_response(content=timeout_msg, view=self)
+        except Exception as e:
+            # 如果訊息早就被使用者刪除，可能會拋出錯誤，這裡選擇忽略
+            pass
 
     # ================= UI 元件定義 =================
 
