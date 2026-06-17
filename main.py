@@ -23,17 +23,20 @@ class MusicBot(commands.Bot):
     async def setup_hook(self):
         if GUILD_ID:
             try:
-                # 如果有填寫 GUILD_ID，執行秒級的特定伺服器同步
                 guild = discord.Object(id=int(GUILD_ID))
                 self.tree.copy_global_to(guild=guild)
                 await self.tree.sync(guild=guild)
-                print(f"✅ 斜線指令已秒級同步至特定伺服器 (ID: {GUILD_ID})")
+                
+                # 如果切換到特定伺服器模式，就把全域的殘留清空
+                self.tree.clear_commands(guild=None)
+                await self.tree.sync(guild=None)
+                print(f"✅ 斜線指令已秒級同步至特定伺服器 (ID: {GUILD_ID})，並清除全域殘留")
             except Exception as e:
                 print(f"❌ 同步至特定伺服器失敗: {e}")
         else:
-            # 如果沒有填寫，則執行全域同步 (需較長時間生效)
+            # 如果沒有填寫，正常同步全域 (全域會自動覆蓋舊的全域指令)
             await self.tree.sync()
-            print("⚠️ 未設定 GUILD_ID，已執行全域指令同步 (這可能需要最多一小時才會在各伺服器生效)")
+            print("⚠️ 未設定 GUILD_ID，已執行全域指令同步")
     
     async def close(self):
         print("🛑 正在關閉機器人並釋放資源...")
