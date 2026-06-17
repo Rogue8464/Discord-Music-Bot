@@ -90,6 +90,15 @@ async def on_command_error(ctx, error):
     # 若是其他未預期的錯誤，正常印出以便未來除錯
     print(f"[未處理錯誤] 執行 {ctx.command} 時發生錯誤: {error}")
 
+@bot.event
+async def on_voice_state_update(member, before, after):
+    """監聽語音頻道狀態，加入容錯機制"""
+    # 如果是機器人自己，且從「有頻道」變成「沒頻道」 (例如被踢出，或 1006 異常斷線)
+    if member == bot.user and before.channel is not None and after.channel is None:
+        print("⚠️ 機器人已從語音頻道斷線 (可能是網路波動或被踢出)，正在清理資源...")
+        # 清理記憶體中的排隊名單，防止背景程式繼續報錯
+        music_queue.clear()    
+
 # ================= 斜線指令定義區塊 =================
 
 @bot.tree.command(name="join", description="讓機器人加入您所在的語音頻道")
