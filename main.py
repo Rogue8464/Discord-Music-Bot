@@ -23,17 +23,20 @@ class MusicBot(commands.Bot):
     async def setup_hook(self):
         if GUILD_ID:
             try:
-                # 如果有填寫 GUILD_ID，執行秒級的特定伺服器同步
                 guild = discord.Object(id=int(GUILD_ID))
                 self.tree.copy_global_to(guild=guild)
                 await self.tree.sync(guild=guild)
-                print(f"✅ 斜線指令已秒級同步至特定伺服器 (ID: {GUILD_ID})")
+                
+                # 如果切換到特定伺服器模式，就把全域的殘留清空
+                self.tree.clear_commands(guild=None)
+                await self.tree.sync(guild=None)
+                print(f"✅ 斜線指令已秒級同步至特定伺服器 (ID: {GUILD_ID})，並清除全域殘留")
             except Exception as e:
                 print(f"❌ 同步至特定伺服器失敗: {e}")
         else:
-            # 如果沒有填寫，則執行全域同步 (需較長時間生效)
+            # 如果沒有填寫，正常同步全域 (全域會自動覆蓋舊的全域指令)
             await self.tree.sync()
-            print("⚠️ 未設定 GUILD_ID，已執行全域指令同步 (這可能需要最多一小時才會在各伺服器生效)")
+            print("⚠️ 未設定 GUILD_ID，已執行全域指令同步")
     
     async def close(self):
         print("🛑 正在關閉機器人並釋放資源...")
@@ -86,6 +89,15 @@ async def on_command_error(ctx, error):
 
     # 若是其他未預期的錯誤，正常印出以便未來除錯
     print(f"[未處理錯誤] 執行 {ctx.command} 時發生錯誤: {error}")
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    """監聽語音頻道狀態，加入容錯機制"""
+    # 如果是機器人自己，且從「有頻道」變成「沒頻道」 (例如被踢出，或 1006 異常斷線)
+    if member == bot.user and before.channel is not None and after.channel is None:
+        print("⚠️ 機器人已從語音頻道斷線 (可能是網路波動或被踢出)，正在清理資源...")
+        # 清理記憶體中的排隊名單，防止背景程式繼續報錯
+        music_queue.clear()    
 
 # ================= 斜線指令定義區塊 =================
 
