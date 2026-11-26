@@ -1,5 +1,7 @@
 # 🎵 Discord Music Bot
 
+🌐 **語言 / Language:** [繁體中文](README.md) | [English](README_EN.md)
+
 這是一個基於 `discord.py` 開發的現代化 Discord 音樂機器人。
 本專案採用 **SOLID 原則** 與 **整潔架構 (Clean Architecture)** 進行重構，具備高內聚、低耦合的特性。支援非同步 (Async) 處理、多執行緒 (Multithreading) 音訊解析，並全面採用 Discord 最新的**斜線指令 (Slash Commands)** 與 UI 視圖互動。
 
@@ -25,7 +27,18 @@
 
 ## 🚀 安裝與設定 (Installation & Setup)
 
-### 1. 取得程式碼與安裝依賴
+### 方式一：Windows 一鍵啟動腳本 (`run.bat`，推薦)
+
+在 Windows 環境下，可直接雙擊 `run.bat`（或在終端機執行 `.\run.bat`），腳本會自動完成以下環境檢查與建置：
+
+1. **FFmpeg 檢查**：確認系統 `PATH` 中已安裝 `ffmpeg`。
+2. **`.env` 檢查**：若找不到 `.env`，會自動從 `.env.example` 複製一份並提示您填入 `TOKEN`。
+3. **環境與 `.venv` 建置**：自動偵測 `uv`（優先）或 `python` / `py -3`，若無 `.venv` 會自動建立並安裝 `requirements.txt` 依賴（若套件缺失也會自動補裝）。
+4. **啟動機器人**：使用 `.venv\Scripts\python.exe` 執行 `main.py`。
+
+### 方式二：手動安裝與設定
+
+#### 1. 取得程式碼與安裝依賴
 
 首先，將專案下載到本機，並安裝所需的 Python 套件。這裡提供標準 `pip` 與現代套件管理器 `uv` 兩種方式：
 
@@ -49,7 +62,7 @@ uv pip install -r requirements.txt
 ```
 若執行程式時遇到 `yt_dlp` 出錯則執行 `pip install --upgrade yt-dlp` 或 `uv pip install --upgrade yt-dlp` 更新套件即可
 
-### 2. 環境變數設定 (.env)
+#### 2. 環境變數設定 (.env)
 在專案的根目錄下找到一個名為 `.env.example` 的檔案，並填入以下資訊：
 
 ```bash
@@ -66,6 +79,9 @@ GUILD_ID=# 填入數字即可，若不填請留空或刪除此行
 ---
 ## 🎮 實際使用 (Usage)
 確認所有設定就緒後，啟動機器人：
+
+* **Windows**：雙擊 `run.bat`（或執行 `.\run.bat`）
+* **手動執行**：
 ```bash
 python .\main.py
 ```
