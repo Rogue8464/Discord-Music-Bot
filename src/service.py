@@ -10,9 +10,8 @@ class MusicService(IAudioPlayer):
         self.queue = queue
         self.extractor = extractor
         self.ffmpeg_options = {
-            # 加上 -probesize 10M 幫助網路不穩時的緩衝
-            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -probesize 10M -fflags +genpts -vn',
-            'options': '-vn -b:a 320k -loglevel warning'
+            'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+            'options': '-vn'
         }
 
     async def join_channel(self, text_channel: discord.TextChannel, author: discord.Member) -> bool:
